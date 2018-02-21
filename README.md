@@ -10,6 +10,8 @@ To install, create a subdirectory in your documents folder named `"Microsoft Pow
 
 Also, `Custom data connectors` must be selected under `Options > Preview features` settings in PowerBI Desktop. After this is selected, PowerBI Desktop must be restarted.
 
+![Preview features](blobs/preview_features.png)
+
 ## Custom Data Connectors Information
 More information about Power BI custom data connectors can be found at [Microsoft/DataConnectors](https://github.com/Microsoft/DataConnectors).
 
