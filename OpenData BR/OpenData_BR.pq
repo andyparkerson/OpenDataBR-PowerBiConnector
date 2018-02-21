@@ -22,21 +22,38 @@ section OpenData_BR;
 
 shared OpenData_BR.Contents = () =>
     let
-        source = NavigationTable.Simple()
+        source = NavigationTable.Nested()
     in
         source;
 
-domain = "data.brla.gov";
+// Set the attributes for Web.Contents() calls
+attributes = [
+    Query = [
+        // We only want data from Baton Rouge
+        domains = "data.brla.gov",
+        // We also only want data that we can handle (datalens not supported yet)
+        only = "dataset,map,filter,chart"
+    ]
+];
 
-getEndPoints = () =>
+// Get the categories that the APIs are divided up into. Each category will have its own nested table
+// Returns a list of category names
+getDomainCategories = () =>
     let 
-        attributes = [
-            Query = [
-                domains = domain,
-                only = "dataset,map,filter,chart"
-            ]
-        ],
-        source = Web.Contents("https://data.brla.gov/api/catalog/v1", attributes),
+        source = Web.Contents("https://data.brla.gov/api/catalog/v1/categories", attributes),
+        json = Json.Document(Text.FromBinary(source)),
+        results = json[results],
+        convertToTable = Table.FromList(results, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+        columnNames = Record.FieldNames(Table.FirstValue(convertToTable)),
+        ExpandedColumn1 = Table.ExpandRecordColumn(convertToTable, "Column1", columnNames),
+        selectColumn = Table.Column(ExpandedColumn1, columnNames{0})
+    in
+        selectColumn;
+
+getEndPoints = (category as text) =>
+    let 
+        categoryAttributes = [Query = Record.AddField(Record.Field(attributes, "Query"), "categories", category)],
+        source = Web.Contents("https://data.brla.gov/api/catalog/v1", categoryAttributes),
         json = Json.Document(Text.FromBinary(source)),
         results = json[results],
         resultSetSize = json[resultSetSize],
@@ -53,7 +70,7 @@ getEndPoints = () =>
     in
         RenamedColumns2;
 
-getTableFromEndpoint = (endPoint as text, dataType as text) => 
+getTableFromEndpoint = (endPoint as text) => 
     let 
         source = Web.Contents("https://data.brla.gov/resource/" & endPoint & ".json"),
         json = Json.Document(Text.FromBinary(source)),
@@ -64,12 +81,12 @@ getTableFromEndpoint = (endPoint as text, dataType as text) =>
     in
         expand;
 
-getEndPointTable = () =>
+getEndPointNavTable = (category as text) =>
     let
-        endpoints = getEndPoints(),
+        endpoints = getEndPoints(category),
         removeColumns = Table.SelectColumns(endpoints, {"Key", "Type", "Name"}),
         changeTypes = Table.TransformColumnTypes(removeColumns, {{"Key", type text}, {"Type", type text}, {"Name", type text}}),
-        getTable = Table.AddColumn(changeTypes, "Data", each getTableFromEndpoint(_[Key], _[Type]), type table),
+        getTable = Table.AddColumn(changeTypes, "Data", each getTableFromEndpoint(_[Key]), type table),
         addItemKind = Table.AddColumn(getTable, "ItemKind", each "Table"),
         addItemName = Table.AddColumn(addItemKind, "ItemName", each "Table"),
         addLeaf = Table.AddColumn(addItemName, "IsLeaf", each true),
@@ -79,9 +96,30 @@ getEndPointTable = () =>
     in
         reorderColumns;
 
-NavigationTable.Simple = () =>
+getCategoryNavTable = () => 
     let
-        objects = getEndPointTable(),
+        categoryList = getDomainCategories(),
+        categoryTable = Table.FromList(categoryList),
+        renameColumn = Table.RenameColumns(categoryTable, {{"Column1", "Name"}}),
+        getTable = Table.AddColumn(renameColumn, "Data", each CreateNavTable(_[Name]), type table),
+        addKey = Table.AddColumn(getTable, "Key", each Text.Range([Name], 0, 4)),
+        addItemKind = Table.AddColumn(addKey, "ItemKind", each "Table"),
+        addItemName = Table.AddColumn(addItemKind, "ItemName", each "Table"),
+        addLeaf = Table.AddColumn(addItemName, "IsLeaf", each false),
+        reorderColumns = Table.ReorderColumns(addLeaf,{"Name", "Key", "Data","ItemKind", "ItemName", "IsLeaf"})
+    in
+        reorderColumns;
+
+shared NavigationTable.Nested = () as table =>
+    let
+        objects = getCategoryNavTable(),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+CreateNavTable = (category as text) =>
+    let
+        objects = getEndPointNavTable(category),
         NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
         NavTable;
