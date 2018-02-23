@@ -23,11 +23,12 @@ section OpenData_BR;
 shared OpenData_BR.Contents = () =>
     let
         source = NavigationTable.Nested()
-//         source = getEndPoints("transportation")
-//         source = getResultSizeSet("bvrj-kevk")
-//         source = getTableFromEndpoint("bvrj-kevk")
     in
         source;
+
+logo = [
+    url = "https://data.brla.gov/api/assets/5D4BE4B0-6AF3-4CA6-A009-3484E2753C34"
+];
 
 // Set the attributes for Web.Contents() calls
 attributes = [
@@ -135,7 +136,9 @@ getCategoryNavTable = () =>
 shared NavigationTable.Nested = () as table =>
     let
         objects = getCategoryNavTable(),
-        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+        addLogo = #table({"Name", "Key", "Data", "ItemKind", "ItemName", "IsLeaf"}, {{"Open Data BR Logo", "logo", logo, "Record", "Record", true}}), 
+        combinedTables = Table.Combine({objects, addLogo}),
+        NavTable = Table.ToNavigationTable(combinedTables, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
         NavTable;
 
