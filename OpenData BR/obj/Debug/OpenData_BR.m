@@ -75,7 +75,7 @@ getEndPoints = (category as text) =>
 
 getTableFromEndpoint = (endPoint as text) => 
     let
-        limit = 10,
+        limit = 1000,
         resultSizeSet = getResultSizeSet(endPoint),
         ResultList = List.Generate(()=>0, each _ < resultSizeSet, each _ + limit),
         tableList = List.Transform(ResultList, each getTableFromEndpointPaging(endPoint, limit, _)),
@@ -183,7 +183,7 @@ OpenData_BR.Publish = [
     Beta = true,
     Category = "Other",
     ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
-    LearnMoreUrl = "https://powerbi.microsoft.com/",
+    LearnMoreUrl = "https://github.com/andyparkerson/OpenDataBR-PowerBiConnector",
     SourceImage = OpenData_BR.Icons,
     SourceTypeImage = OpenData_BR.Icons
 ];
