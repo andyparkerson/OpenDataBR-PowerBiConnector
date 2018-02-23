@@ -10,3 +10,5 @@ It is available on the public [Microsoft Power BI apps page](http://bit.ly/2ELkI
 ![Salaries](/blobs/GovernmentSalaries.png)
 
 ![Salaries2](/blobs/GovernmentSalaries2.png)
+
+![Salaries3](/blobs/GovernmentSalaries3.png)
