@@ -22,7 +22,9 @@ section OpenData_BR;
 
 shared OpenData_BR.Contents = () =>
     let
-        source = NavigationTable.Nested()
+//         source = NavigationTable.Nested()
+//         source = getEndPoints("transportation")
+        source = getResultSizeSet("bvrj-kevk")
     in
         source;
 
@@ -73,13 +75,23 @@ getEndPoints = (category as text) =>
 getTableFromEndpoint = (endPoint as text) => 
     let 
         source = Web.Contents("https://data.brla.gov/resource/" & endPoint & ".json"),
+        resultSizeSet = getResultSizeSet(endPoint),
         json = Json.Document(Text.FromBinary(source)),
         ConvertedToTable = Table.FromList(json, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
         first = Table.FirstValue(ConvertedToTable),
         fieldNames = Record.FieldNames(first),
         expand = Table.ExpandRecordColumn(ConvertedToTable, "Column1", fieldNames)
     in
-        expand;
+        source;
+
+getResultSizeSet = (endPoint as text) =>
+    let
+        source = Web.Contents("https://data.brla.gov/resource/" & endPoint & ".json?$select=count(*)"),
+        json = Json.Document(Text.FromBinary(source)),
+        countRecord = List.First(json),
+        count = countRecord[count]
+    in
+        count;
 
 getEndPointNavTable = (category as text) =>
     let
