@@ -25,6 +25,7 @@ shared OpenData_BR.Contents = () =>
         source = NavigationTable.Nested()
 //         source = getEndPoints("transportation")
 //         source = getResultSizeSet("bvrj-kevk")
+//         source = getTableFromEndpoint("bvrj-kevk")
     in
         source;
 
@@ -73,9 +74,18 @@ getEndPoints = (category as text) =>
         RenamedColumns2;
 
 getTableFromEndpoint = (endPoint as text) => 
-    let 
-        source = Web.Contents("https://data.brla.gov/resource/" & endPoint & ".json"),
+    let
+        limit = 10,
         resultSizeSet = getResultSizeSet(endPoint),
+        ResultList = List.Generate(()=>0, each _ < resultSizeSet, each _ + limit),
+        tableList = List.Transform(ResultList, each getTableFromEndpointPaging(endPoint, limit, _)),
+        tableCombine = Table.Combine(tableList)
+    in
+        tableCombine;
+
+getTableFromEndpointPaging = (endPoint as text, limit as number, offset as number) => 
+    let 
+        source = Web.Contents("https://data.brla.gov/resource/" & endPoint & ".json?$limit=" & Number.ToText(limit) & "&$offset=" & Number.ToText(offset)),
         json = Json.Document(Text.FromBinary(source)),
         ConvertedToTable = Table.FromList(json, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
         first = Table.FirstValue(ConvertedToTable),
@@ -89,7 +99,7 @@ getResultSizeSet = (endPoint as text) =>
         source = Web.Contents("https://data.brla.gov/resource/" & endPoint & ".json?$select=count(*)"),
         json = Json.Document(Text.FromBinary(source)),
         countRecord = List.First(json),
-        count = countRecord[count]
+        count = Number.FromText(countRecord[count])
     in
         count;
 
