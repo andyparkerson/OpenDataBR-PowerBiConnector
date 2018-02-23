@@ -183,7 +183,7 @@ OpenData_BR.Publish = [
     Beta = true,
     Category = "Other",
     ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
-    LearnMoreUrl = "https://powerbi.microsoft.com/",
+    LearnMoreUrl = "https://github.com/andyparkerson/OpenDataBR-PowerBiConnector",
     SourceImage = OpenData_BR.Icons,
     SourceTypeImage = OpenData_BR.Icons
 ];
