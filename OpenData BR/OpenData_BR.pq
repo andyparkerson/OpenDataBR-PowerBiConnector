@@ -22,9 +22,9 @@ section OpenData_BR;
 
 shared OpenData_BR.Contents = () =>
     let
-//         source = NavigationTable.Nested()
+        source = NavigationTable.Nested()
 //         source = getEndPoints("transportation")
-        source = getResultSizeSet("bvrj-kevk")
+//         source = getResultSizeSet("bvrj-kevk")
     in
         source;
 
@@ -82,7 +82,7 @@ getTableFromEndpoint = (endPoint as text) =>
         fieldNames = Record.FieldNames(first),
         expand = Table.ExpandRecordColumn(ConvertedToTable, "Column1", fieldNames)
     in
-        source;
+        expand;
 
 getResultSizeSet = (endPoint as text) =>
     let
