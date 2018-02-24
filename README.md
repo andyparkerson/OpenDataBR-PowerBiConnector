@@ -1,4 +1,5 @@
 # OpenDataBR-PowerBiConnector
+![Open Data BR](blobs\OpenData_BR_logo.png)
 ## PowerBI Desktop Custom Connector for the OpenDataBR API
 
 This connector will allow the user to connect with any of the Open Data BR endpoints. It gets the list of endpoints dynamically, and then builds the tables. Multiple tables can be queried by Power BI with a single connection.
